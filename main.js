@@ -157,7 +157,7 @@
       saveHistory();
 
       showCustomAlert(
-        isWrong ? `❌ สายตามันเบลอหรือเธอไม่ชัดเจน!<br>คะแนนของคุณ: ${score}` : `⏰ หมดเวลาแล้วเธอคงต้องไป!<br>คะแนนของคุณ: ${score}`,
+        isWrong ? `❌ ผิดจ้าาาา<br>คะแนนของคุณ: ${score}` : `⏰ หมดเวลา!<br>คะแนนของคุณ: ${score}`,
         () => { gamePage.classList.add("hidden"); namePage.classList.remove("hidden"); updateHistoryInNamePage(); },
         true
       );
@@ -180,4 +180,5 @@
     function updateHistoryInNamePage() { renderHistory(historyInNamePageBody); }
 
     loadHistory();
+
     updateHistoryInNamePage();  
