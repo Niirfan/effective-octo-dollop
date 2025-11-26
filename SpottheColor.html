@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>เกมจับสีที่ต่างออกไป | Spot the Color</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;700&family=Prompt:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/4144/4144784.png">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow-x: hidden; }
+    body {
+      min-height: 100vh;
+      padding: 20px 20px 100px;
+      text-align: center;
+      font-family: 'Kanit', 'Prompt', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #dbeafe 100%);
+    }
+    h1 { font-size: 2.5rem; color: #2563eb; margin-bottom: 10px; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(147, 197, 253, 0.3); }
+    h2 { font-size: 2rem; color: #2563eb; margin-bottom: 20px; }
+
+    /* GRID */
+    #grid {
+      display: grid;
+      gap: 16px;
+      justify-content: center;
+      margin: 32px auto;
+      background: #fff;
+      border: 4px solid #2563eb;
+      border-radius: 24px;
+      box-shadow: 0 4px 32px rgba(37, 99, 235, 0.13);
+      padding: 32px 24px;
+      width: max-content;
+      max-width: 90vw;
+    }
+    .square {
+      cursor: pointer;
+      border-radius: 12px;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      transition: all 0.18s cubic-bezier(.4,2,.6,1);
+      user-select: none;
+    }
+    .square.clicked { pointer-events: none; opacity: 0.7; filter: grayscale(0.4); }
+    .square:hover, .square:focus { transform: scale(1.14) rotate(-2deg); box-shadow: 0 4px 24px rgba(37, 99, 235, 0.2); border: 2.5px solid #2563eb; z-index: 2; }
+
+    /* BUTTON */
+    button {
+      padding: 12px 32px;
+      font-size: 1.2rem;
+      font-family: inherit;
+      font-weight: 600;
+      background: linear-gradient(90deg, #3b82f6 60%, #60a5fa 100%);
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      box-shadow: 0 2px 12px rgba(59, 130, 246, 0.2);
+      margin: 8px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    button:hover { background: linear-gradient(90deg, #2563eb 60%, #38bdf8 100%); transform: translateY(-2px) scale(1.04); }
+    button.secondary { background: #64748b; }
+    button.secondary:hover { background: #475569; }
+
+    /* INPUT */
+    input[type="text"] {
+      padding: 10px 18px;
+      border-radius: 16px;
+      border: 1.5px solid #94a3b8;
+      font-size: 1.1rem;
+      width: 220px;
+      margin: 12px;
+      outline: none;
+      transition: border 0.2s;
+      font-family: inherit;
+    }
+    input[type="text"]:focus { border: 1.5px solid #2563eb; background: #f1f5f9; }
+
+    /* TABLE */
+    table {
+      margin: 30px auto;
+      width: 90%;
+      max-width: 500px;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; }
+    th { background: #2563eb; color: white; font-weight: 600; }
+    tr:nth-child(even) { background: #f8fafc; }
+    tr:hover { background: #e0f2fe; }
+    .score-cell { color: #334155; font-weight: 700; }
+    .hidden { display: none !important; }
+
+    /* ALERT */
+    #customAlert {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .alert-box {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 32px rgba(37, 99, 235, 0.2);
+      padding: 24px 18px 12px;
+      max-width: 340px;
+      text-align: center;
+    }
+    #customAlertMsg { font-size: 1.08em; color: #2563eb; margin-bottom: 14px; line-height: 1.5; }
+
+    footer {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: rgba(37,99,235,0.08);
+      color: #2563eb;
+      font-size: 0.95em;
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    /* ========== MOBILE RESPONSIVE ========== */
+    @media (max-width: 600px) {
+      h1 { font-size: 1.6rem; }
+      h2 { font-size: 1.3rem; }
+      button { font-size: 1em; padding: 10px 18px; }
+      input[type="text"] { width: 90%; font-size: 1rem; padding: 8px 12px; }
+      #grid { gap: 10px; padding: 20px; }
+      .square { border-radius: 8px; }
+      footer { font-size: 0.8em; padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- หน้าคำแนะนำ -->
+  <div id="howToPlayPage">
+    <h1>🎨 Spot the Color</h1>
+    <div class="info-box" style="max-width:480px;margin:0 auto 18px;text-align:left;background:rgba(255,255,255,0.5);border-radius:16px;padding:18px 22px;box-shadow:0 2px 12px rgba(37,99,235,0.07);">
+      <strong>วิธีการเล่น:</strong>
+      <ul>
+        <li>กรอกชื่อของคุณ (ไม่เกิน 12 ตัวอักษร)</li>
+        <li>กด <b>เริ่มเกม</b> เพื่อเริ่มจับเวลา 50 วินาที</li>
+        <li>คลิก "ช่องสี" ที่แตกต่างจากช่องอื่น</li>
+        <li>ตอบถูกได้ 10 คะแนน ไปด่านถัดไป</li>
+        <li>คลิกผิดหรือหมดเวลา เกมจะจบทันที</li>
+      </ul>
+    </div>
+    <button id="goToNameBtn">ถัดไป</button>
+  </div>
+
+  <!-- หน้ากรอกชื่อ + ประวัติ -->
+  <div id="namePage" class="hidden">
+    <h2>กรุณากรอกชื่อของคุณ</h2>
+    <input id="playerName" type="text" placeholder="กรอกชื่อของคุณ" maxlength="12">
+    <div>
+      <button id="startBtn">เริ่มเกม</button>
+      <button id="backToHowToBtn" class="secondary">ย้อนกลับ</button>
+    </div>
+
+    <h3 style="color:#2563eb;font-size:1.4rem;margin-top:30px;">🏆 Ranking</h3>
+    <table id="historyInNamePage">
+      <thead>
+        <tr>
+          <th>อันดับ</th>
+          <th>ชื่อ</th>
+          <th>ด่านสูงสุด</th>
+          <th>คะแนน</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- หน้าเกม -->
+  <div id="gamePage" class="hidden">
+    <p>ด่าน: <span id="level">1</span> | คะแนน: <span id="score">0</span> | เวลา: <span id="timer">30.00</span> วินาที</p>
+    <div id="grid" class="hidden"></div>
+    <button id="exitBtn" class="secondary">ออกจากเกม</button>
+  </div>
+
+  <!-- Custom Alert -->
+  <div id="customAlert" class="hidden">
+    <div class="alert-box">
+      <div id="customAlertMsg"></div>
+      <button id="restartBtn" class="hidden">เริ่มใหม่ทันที</button>
+      <button id="customAlertBtn">ตกลง</button>
+    </div>
+  </div>
+
+  <footer>
+    สมาชิกกลุ่ม:<br>
+    6620310008 นายนิอีรฟาน เปาะแม |
+    6620310135 นายณัฐวัฒน์ จันทรส |
+    6620310242 นายอาณัส สาแล
+  </footer>
+
+  <script>
+    const howToPlayPage = document.getElementById("howToPlayPage");
+    const namePage = document.getElementById("namePage");
+    const gamePage = document.getElementById("gamePage");
+    const playerNameInput = document.getElementById("playerName");
+    const grid = document.getElementById("grid");
+    const timerDisplay = document.getElementById("timer");
+    const levelDisplay = document.getElementById("level");
+    const scoreDisplay = document.getElementById("score");
+    const historyInNamePageBody = document.querySelector("#historyInNamePage tbody");
+    const goToNameBtn = document.getElementById("goToNameBtn");
+    const startBtn = document.getElementById("startBtn");
+    const backToHowToBtn = document.getElementById("backToHowToBtn");
+    const exitBtn = document.getElementById("exitBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const customAlertBtn = document.getElementById("customAlertBtn");
+
+    let level = 1, score = 0, diffColorIndex;
+    let gameTimer = 30, gameInterval, playing = false;
+    let history = [], currentPlayer = "";
+
+    function loadHistory() {
+      const saved = localStorage.getItem("spotcolor_history");
+      if (saved) history = JSON.parse(saved) || [];
+    }
+    function saveHistory() {
+      localStorage.setItem("spotcolor_history", JSON.stringify(history));
+    }
+
+    function showCustomAlert(msg, callback = null, showRestart = false) {
+      document.getElementById("customAlertMsg").innerHTML = msg;
+      restartBtn.classList.toggle("hidden", !showRestart);
+      document.getElementById("customAlert").classList.remove("hidden");
+
+      customAlertBtn.onclick = () => {
+        document.getElementById("customAlert").classList.add("hidden");
+        if (callback) callback();
+      };
+
+      restartBtn.onclick = () => {
+        document.getElementById("customAlert").classList.add("hidden");
+        gamePage.classList.remove("hidden");
+        grid.classList.remove("hidden");
+        startGame();
+      };
+    }
+
+    goToNameBtn.onclick = () => {
+      howToPlayPage.classList.add("hidden");
+      namePage.classList.remove("hidden");
+      playerNameInput.value = "";
+      updateHistoryInNamePage();
+      playerNameInput.focus();
+    };
+
+    backToHowToBtn.onclick = () => {
+      namePage.classList.add("hidden");
+      howToPlayPage.classList.remove("hidden");
+    };
+
+    startBtn.onclick = () => {
+      const name = playerNameInput.value.trim();
+      if (!name) return showCustomAlert("กรุณากรอกชื่อก่อนเริ่มเกม");
+      currentPlayer = name;
+      namePage.classList.add("hidden");
+      gamePage.classList.remove("hidden");
+      grid.classList.remove("hidden");
+      startGame();
+    };
+
+    exitBtn.onclick = () => {
+      stopGame();
+      gamePage.classList.add("hidden");
+      namePage.classList.remove("hidden");
+      updateHistoryInNamePage();
+    };
+
+    function startGame() {
+      clearInterval(gameInterval);
+      level = 1;
+      score = 0;
+      playing = true;
+      let timeLeft = gameTimer;
+
+      scoreDisplay.textContent = score;
+      levelDisplay.textContent = level;
+
+      gameInterval = setInterval(() => {
+        timeLeft -= 0.01;
+        if (timeLeft <= 0) { endGame(false); timeLeft = 0; }
+        timerDisplay.textContent = timeLeft.toFixed(2);
+      }, 10);
+
+      generateGrid();
+    }
+
+    function stopGame() {
+      playing = false;
+      clearInterval(gameInterval);
+      grid.innerHTML = "";
+      grid.classList.add("hidden");
+    }
+
+    function generateGrid() {
+      grid.innerHTML = "";
+      const isMobile = window.innerWidth <= 600;
+      const gridSize = Math.min(7, 4 + Math.floor((level - 1) / 3));
+      const totalSquares = gridSize * gridSize;
+      const squareSize = Math.max((isMobile ? 40 : 60) - (gridSize - 4) * 5, 25);
+      grid.style.gridTemplateColumns = `repeat(${gridSize}, ${squareSize}px)`;
+      diffColorIndex = Math.floor(Math.random() * totalSquares);
+      const r = Math.floor(Math.random() * 200);
+      const g = Math.floor(Math.random() * 200);
+      const b = Math.floor(Math.random() * 200);
+      const baseColor = `rgb(${r}, ${g}, ${b})`;
+      const colorDiff = Math.max(50 - level * 2, 5);
+      const diffColor = `rgb(${Math.min(r + colorDiff, 255)}, ${g}, ${b})`;
+
+      for (let i = 0; i < totalSquares; i++) {
+        const square = document.createElement("div");
+        square.classList.add("square");
+        square.style.width = squareSize + "px";
+        square.style.height = squareSize + "px";
+        square.style.backgroundColor = i === diffColorIndex ? diffColor : baseColor;
+        square.addEventListener("click", () => handleClick(i));
+        grid.appendChild(square);
+      }
+    }
+
+    function handleClick(index) {
+      if (!playing) return;
+      if (index === diffColorIndex) {
+        level++;
+        score += 10;
+        scoreDisplay.textContent = score;
+        levelDisplay.textContent = level;
+        generateGrid();
+      } else {
+        endGame(true);
+      }
+    }
+
+    function endGame(isWrong) {
+      playing = false;
+      clearInterval(gameInterval);
+      grid.classList.add("hidden");
+
+      const finalLevel = level - 1;
+      const existing = history.find(h => h.name === currentPlayer);
+
+      if (!existing) {
+        history.push({ name: currentPlayer, level: finalLevel, score });
+      } else if (score > existing.score) {
+        existing.level = finalLevel;
+        existing.score = score;
+      }
+
+      saveHistory();
+
+      showCustomAlert(
+        isWrong ? `❌ สายตามันเบลอหรือเธอไม่ชัดเจน!<br>คะแนนของคุณ: ${score}` : `⏰ หมดเวลาแล้วเธอคงต้องไป!<br>คะแนนของคุณ: ${score}`,
+        () => { gamePage.classList.add("hidden"); namePage.classList.remove("hidden"); updateHistoryInNamePage(); },
+        true
+      );
+    }
+
+    function renderHistory(targetBody) {
+      targetBody.innerHTML = "";
+      const sorted = history.slice().sort((a, b) => b.score - a.score);
+      if (sorted.length === 0) {
+        targetBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#94a3b8;">ยังไม่มีประวัติการเล่น</td></tr>`;
+        return;
+      }
+      sorted.forEach((item, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${i + 1}</td><td>${item.name}</td><td>${item.level}</td><td class="score-cell">${item.score}</td>`;
+        targetBody.appendChild(row);
+      });
+    }
+
+    function updateHistoryInNamePage() { renderHistory(historyInNamePageBody); }
+
+    loadHistory();
+    updateHistoryInNamePage();
+  </script>
+</body>
+</html>
